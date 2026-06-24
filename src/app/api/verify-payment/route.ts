@@ -57,8 +57,8 @@ export async function POST(request: NextRequest) {
     // 2. Generate S3 Presigned URL
     let downloadUrl = "";
     const fileMapping: Record<string, string> = {
-      "linkedin-applier": "LinkedIn-Agent Setup 1.0.0.exe",
-      "intai": "IntAi Setup 1.0.0.exe",
+      "linkedin-applier": "LinkedIn-Agent Setup.exe",
+      "intai": "IntAi Setup.exe",
     };
     const objectKey = fileMapping[productKey] || `${productKey}.zip`;
     const bucketName = process.env.STORAGE_BUCKET_NAME || "software-sales";
@@ -93,116 +93,128 @@ export async function POST(request: NextRequest) {
     const exchangeRate = 83;
     const amountUSD = Math.round(amountINR / exchangeRate);
 
-    try {
-      await resend.emails.send({
-        from: process.env.FROM_EMAIL || "onboarding@resend.dev",
-        to: email,
-        subject: `Your Onboarding & Download Link: ${productName}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <h2 style="color: #4f46e5;">Thank you for your purchase!</h2>
-            <p>You have successfully purchased a lifetime license for <strong>${productName}</strong>.</p>
-            <p>Below is your secure, temporary download link to obtain the desktop executable (valid for 1 hour):</p>
-            <div style="margin: 24px 0;">
-              <a href="${downloadUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Software</a>
+    // Define asynchronous tasks to be executed concurrently
+    const emailCustomerPromise = (async () => {
+      try {
+        await resend.emails.send({
+          from: process.env.FROM_EMAIL || "onboarding@resend.dev",
+          to: email,
+          subject: `Your Onboarding & Download Link: ${productName}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h2 style="color: #4f46e5;">Thank you for your purchase!</h2>
+              <p>You have successfully purchased a lifetime license for <strong>${productName}</strong>.</p>
+              <p>Below is your secure, temporary download link to obtain the desktop executable (valid for 1 hour):</p>
+              <div style="margin: 24px 0;">
+                <a href="${downloadUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Software</a>
+              </div>
+              <p style="color: #64748b; font-size: 12px;">If the download button above does not work, copy and paste this link in your browser:</p>
+              <p style="word-break: break-all; color: #0284c7; font-size: 12px;">${downloadUrl}</p>
+              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+              <p style="color: #64748b; font-size: 13px;">devmotive Support. Do not reply directly to this email.</p>
             </div>
-            <p style="color: #64748b; font-size: 12px;">If the download button above does not work, copy and paste this link in your browser:</p>
-            <p style="word-break: break-all; color: #0284c7; font-size: 12px;">${downloadUrl}</p>
-            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-            <p style="color: #64748b; font-size: 13px;">devmotive Support. Do not reply directly to this email.</p>
-          </div>
-        `,
-      });
-    } catch (resendError: any) {
-      console.error("==================================================");
-      console.error("RESEND EMAIL DELIVERY ERROR (CUSTOMER EMAIL FAILED)");
-      console.error("Error Message:", resendError?.message || resendError);
-      console.error("--------------------------------------------------");
-      console.error("DIAGNOSTIC CHECKLIST:");
-      if (process.env.FROM_EMAIL === "onboarding@resend.dev" || !process.env.FROM_EMAIL) {
-        console.error("1. SANDBOX RESTRICTION ACTIVE: You are sending from 'onboarding@resend.dev'.");
-        console.error(`   Resend ONLY permits sending emails to your own registered Resend account email.`);
-        console.error(`   You tried to send to: '${email}'. This will FAIL unless it matches your Resend signup email.`);
-        console.error("2. TO FIX IN DEVELOPMENT: Enter your personal Resend account email in the checkout form.");
-        console.error("3. TO FIX IN PRODUCTION: You must verify your own custom domain (e.g. devmotive.com) in the Resend dashboard.");
-        console.error("   Then, update FROM_EMAIL in .env.local to an email on that domain (e.g. sales@devmotive.com).");
-      } else {
-        console.error("1. Check if the FROM_EMAIL domain is verified in your Resend Dashboard.");
-        console.error("2. Verify that your RESEND_API_KEY in .env.local is valid and not expired.");
+          `,
+        });
+      } catch (resendError: any) {
+        console.error("==================================================");
+        console.error("RESEND EMAIL DELIVERY ERROR (CUSTOMER EMAIL FAILED)");
+        console.error("Error Message:", resendError?.message || resendError);
+        console.error("--------------------------------------------------");
+        console.error("DIAGNOSTIC CHECKLIST:");
+        if (process.env.FROM_EMAIL === "onboarding@resend.dev" || !process.env.FROM_EMAIL) {
+          console.error("1. SANDBOX RESTRICTION ACTIVE: You are sending from 'onboarding@resend.dev'.");
+          console.error(`   Resend ONLY permits sending emails to your own registered Resend account email.`);
+          console.error(`   You tried to send to: '${email}'. This will FAIL unless it matches your Resend signup email.`);
+          console.error("2. TO FIX IN DEVELOPMENT: Enter your personal Resend account email in the checkout form.");
+          console.error("3. TO FIX IN PRODUCTION: You must verify your own custom domain (e.g. devmotive.com) in the Resend dashboard.");
+          console.error("   Then, update FROM_EMAIL in .env.local to an email on that domain (e.g. sales@devmotive.com).");
+        } else {
+          console.error("1. Check if the FROM_EMAIL domain is verified in your Resend Dashboard.");
+          console.error("2. Verify that your RESEND_API_KEY in .env.local is valid and not expired.");
+        }
+        console.error("==================================================");
       }
-      console.error("==================================================");
-    }
+    })();
 
-    // 4. Log the Sale to our local database (INR as primary)
-    await logSale({
-      paymentId: razorpay_payment_id,
-      orderId: razorpay_order_id,
-      email,
-      productKey,
-      productName,
-      amountUSD,
-      amountINR,
-    });
+    const logSalePromise = (async () => {
+      try {
+        await logSale({
+          paymentId: razorpay_payment_id,
+          orderId: razorpay_order_id,
+          email,
+          productKey,
+          productName,
+          amountUSD,
+          amountINR,
+        });
+      } catch (logError) {
+        console.error("LOG SALE DATABASE ERROR:", logError);
+      }
+    })();
 
-    // 5. Dispatch Admin Alert Email via Resend
     const adminEmail = process.env.ADMIN_EMAIL || process.env.FROM_EMAIL || "onboarding@resend.dev";
-    try {
-      await resend.emails.send({
-        from: process.env.FROM_EMAIL || "onboarding@resend.dev",
-        to: adminEmail,
-        subject: `[ALERT] New Sale: ${productName}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <h2 style="color: #10b981; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-top: 0;">New Purchase Alert!</h2>
-            <p>A new customer has successfully purchased a lifetime license.</p>
-            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 8px 0; font-weight: bold; color: #475569; width: 150px;">Product:</td>
-                <td style="padding: 8px 0; color: #0f172a;">${productName} (${productKey})</td>
-              </tr>
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Customer Email:</td>
-                <td style="padding: 8px 0; color: #0f172a;">${email}</td>
-              </tr>
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Amount:</td>
-                <td style="padding: 8px 0; color: #10b981; font-weight: bold;">₹${amountINR.toLocaleString("en-IN")} INR (~$${amountUSD} USD)</td>
-              </tr>
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Payment ID:</td>
-                <td style="padding: 8px 0; font-family: monospace; font-size: 13px; color: #0f172a;">${razorpay_payment_id}</td>
-              </tr>
-              <tr style="border-bottom: 1px solid #f1f5f9;">
-                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Order ID:</td>
-                <td style="padding: 8px 0; font-family: monospace; font-size: 13px; color: #0f172a;">${razorpay_order_id}</td>
-              </tr>
-            </table>
-            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-            <p style="color: #64748b; font-size: 11px; margin-top: 12px;">devmotive Sales Alert System. Do not reply to this email.</p>
-          </div>
-        `,
-      });
-    } catch (adminEmailError: any) {
-      console.error("==================================================");
-      console.error("RESEND EMAIL DELIVERY ERROR (ADMIN EMAIL FAILED)");
-      console.error("Error Message:", adminEmailError?.message || adminEmailError);
-      console.error("--------------------------------------------------");
-      console.error("DIAGNOSTIC CHECKLIST:");
-      console.error(`Attempted to send to ADMIN_EMAIL: '${adminEmail}'`);
-      if (adminEmail === "onboarding@resend.dev") {
-        console.error("WARNING: 'onboarding@resend.dev' is a system address, NOT a real mailbox.");
-        console.error("You cannot log in to read emails sent to 'onboarding@resend.dev'.");
-        console.error("Please add 'ADMIN_EMAIL=your_actual_email@gmail.com' to your .env.local file.");
-      } else if (process.env.FROM_EMAIL === "onboarding@resend.dev" || !process.env.FROM_EMAIL) {
-        console.error("1. SANDBOX RESTRICTION: Because FROM_EMAIL is 'onboarding@resend.dev',");
-        console.error("   ADMIN_EMAIL must be the exact email address you registered your Resend account with.");
-        console.error(`   Is '${adminEmail}' your Resend account signup email? If not, Resend will reject this.`);
-      } else {
-        console.error("1. Verify your RESEND_API_KEY is correct.");
-        console.error("2. Confirm your FROM_EMAIL domain is verified in Resend.");
+    const emailAdminPromise = (async () => {
+      try {
+        await resend.emails.send({
+          from: process.env.FROM_EMAIL || "onboarding@resend.dev",
+          to: adminEmail,
+          subject: `[ALERT] New Sale: ${productName}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h2 style="color: #10b981; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-top: 0;">New Purchase Alert!</h2>
+              <p>A new customer has successfully purchased a lifetime license.</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569; width: 150px;">Product:</td>
+                  <td style="padding: 8px 0; color: #0f172a;">${productName} (${productKey})</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Customer Email:</td>
+                  <td style="padding: 8px 0; color: #0f172a;">${email}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Amount:</td>
+                  <td style="padding: 8px 0; color: #10b981; font-weight: bold;">₹${amountINR.toLocaleString("en-IN")} INR (~$${amountUSD} USD)</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Payment ID:</td>
+                  <td style="padding: 8px 0; font-family: monospace; font-size: 13px; color: #0f172a;">${razorpay_payment_id}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="padding: 8px 0; font-weight: bold; color: #475569;">Order ID:</td>
+                  <td style="padding: 8px 0; font-family: monospace; font-size: 13px; color: #0f172a;">${razorpay_order_id}</td>
+                </tr>
+              </table>
+              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+              <p style="color: #64748b; font-size: 11px; margin-top: 12px;">devmotive Sales Alert System. Do not reply to this email.</p>
+            </div>
+          `,
+        });
+      } catch (adminEmailError: any) {
+        console.error("==================================================");
+        console.error("RESEND EMAIL DELIVERY ERROR (ADMIN EMAIL FAILED)");
+        console.error("Error Message:", adminEmailError?.message || adminEmailError);
+        console.error("--------------------------------------------------");
+        console.error("DIAGNOSTIC CHECKLIST:");
+        console.error(`Attempted to send to ADMIN_EMAIL: '${adminEmail}'`);
+        if (adminEmail === "onboarding@resend.dev") {
+          console.error("WARNING: 'onboarding@resend.dev' is a system address, NOT a real mailbox.");
+          console.error("You cannot log in to read emails sent to 'onboarding@resend.dev'.");
+          console.error("Please add 'ADMIN_EMAIL=your_actual_email@gmail.com' to your .env.local file.");
+        } else if (process.env.FROM_EMAIL === "onboarding@resend.dev" || !process.env.FROM_EMAIL) {
+          console.error("1. SANDBOX RESTRICTION: Because FROM_EMAIL is 'onboarding@resend.dev',");
+          console.error("   ADMIN_EMAIL must be the exact email address you registered your Resend account with.");
+          console.error(`   Is '${adminEmail}' your Resend account signup email? If not, Resend will reject this.`);
+        } else {
+          console.error("1. Verify your RESEND_API_KEY is correct.");
+          console.error("2. Confirm your FROM_EMAIL domain is verified in Resend.");
+        }
+        console.error("==================================================");
       }
-      console.error("==================================================");
-    }
+    })();
+
+    // Await all background tasks concurrently using Promise.allSettled
+    await Promise.allSettled([emailCustomerPromise, logSalePromise, emailAdminPromise]);
 
     return NextResponse.json({
       verified: true,

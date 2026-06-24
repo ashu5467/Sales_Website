@@ -7,13 +7,13 @@ import { Briefcase, Brain, ArrowRight, CheckCircle2, Cpu, Sparkles, Zap, Shield,
 
 export default function Home() {
   const [hoursSpent, setHoursSpent] = useState(3); // hours per day job hunting
-  const [hourlyRate, setHourlyRate] = useState(25); // value of user's time per hour
+  const [hourlyRate, setHourlyRate] = useState(1000); // value of user's time per hour in INR
 
   // Calculator logic
   const daysSpentYearly = 250; // assuming 250 job hunt days per year
   const totalHoursYearly = hoursSpent * daysSpentYearly;
   const hoursSavedYearly = Math.round(totalHoursYearly * 0.85); // 85% time savings
-  const dollarSavedYearly = hoursSavedYearly * hourlyRate;
+  const rupeesSavedYearly = hoursSavedYearly * hourlyRate;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -163,12 +163,13 @@ export default function Home() {
               <div>
                 <div className="flex justify-between text-sm font-medium mb-2">
                   <span className="text-slate-300">Value of Your Time</span>
-                  <span className="text-indigo-400 font-bold">${hourlyRate} / hour</span>
+                  <span className="text-indigo-400 font-bold">₹{hourlyRate.toLocaleString("en-IN")} / hour</span>
                 </div>
                 <input
                   type="range"
-                  min="15"
-                  max="100"
+                  min="300"
+                  max="3000"
+                  step="100"
                   value={hourlyRate}
                   onChange={(e) => setHourlyRate(Number(e.target.value))}
                   className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
@@ -187,7 +188,7 @@ export default function Home() {
               <div className="border-t border-slate-850 pt-4">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Annual Time Value Saved</p>
                 <p className="text-3xl font-extrabold text-emerald-400 mt-1">
-                  ${dollarSavedYearly.toLocaleString()} <span className="text-sm font-normal text-slate-400">/ Year</span>
+                  ₹{rupeesSavedYearly.toLocaleString("en-IN")} <span className="text-sm font-normal text-slate-400">/ Year</span>
                 </p>
               </div>
             </div>

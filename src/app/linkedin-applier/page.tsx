@@ -35,7 +35,7 @@ export default function LinkedInApplier() {
     },
     {
       q: "What OS does this support?",
-      a: "We support Windows (.exe) and macOS (.dmg, optimized for Apple Silicon and Intel).",
+      a: "Currently, we support Windows (.exe). A macOS version is not yet available, but is planned for a future release.",
     },
   ];
 

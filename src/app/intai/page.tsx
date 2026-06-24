@@ -27,7 +27,7 @@ export default function IntAiPage() {
   const faqs = [
     {
       q: "Is it really undetectable during screen share?",
-      a: "Yes. The desktop assistant uses OS-specific graphics APIs (dwmapi on Windows and CGWindow on macOS) to exclude the overlay window from recording/capture streams. When you share your screen or entire desktop, the interviewer sees nothing but your code editor.",
+      a: "Yes. The desktop assistant uses Windows-specific graphics APIs (dwmapi) to exclude the overlay window from recording/capture streams. When you share your screen or entire desktop, the interviewer sees nothing but your code editor.",
     },
     {
       q: "Does it support multiple interview formats?",
