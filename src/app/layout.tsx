@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HustleOS | Premium Lifetime-Licensed Career Tools",
+  title: "devmotive | Premium Lifetime-Licensed Career Tools",
   description: "Automate your career with premium desktop applications. Pay once, use forever.",
 };
 

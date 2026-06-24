@@ -10,7 +10,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-white mb-4">
               <Sparkles className="h-5 w-5 text-indigo-400" />
-              <span>HustleOS</span>
+              <span>devmotive</span>
             </Link>
             <p className="text-sm text-slate-500 max-w-sm">
               We design and build premium, locally-run desktop applications for developers, job hunters, and technical professionals.
@@ -48,7 +48,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 border-t border-slate-900 pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-600 gap-4">
-          <p>&copy; {new Date().getFullYear()} HustleOS Software. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} devmotive. All rights reserved.</p>
           <div className="flex gap-4">
             <a href="#" className="hover:text-slate-400">Privacy Policy</a>
             <a href="#" className="hover:text-slate-400">Terms of Service</a>

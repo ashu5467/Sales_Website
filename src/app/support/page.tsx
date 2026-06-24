@@ -55,7 +55,7 @@ export default function SupportPage() {
       <div className="relative w-full max-w-xl rounded-2xl border border-slate-900 bg-slate-900/40 p-8 backdrop-blur-md shadow-2xl">
         <div className="flex items-center gap-2 mb-6">
           <MessageSquare className="h-6 w-6 text-indigo-400" />
-          <h1 className="text-2xl font-bold text-white">HustleOS Support Portal</h1>
+          <h1 className="text-2xl font-bold text-white">devmotive Support Portal</h1>
         </div>
 
         <p className="text-sm text-slate-400 mb-8">

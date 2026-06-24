@@ -25,7 +25,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight text-white">
               <Sparkles className="h-5 w-5 text-indigo-400" />
-              <span>HustleOS</span>
+              <span>devmotive</span>
             </Link>
           </div>
 

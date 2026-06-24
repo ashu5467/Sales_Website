@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     await resend.emails.send({
       from: adminEmail,
       to: adminEmail,
-      subject: `[HustleOS Support] ${subject}`,
+      subject: `[devmotive Support] ${subject}`,
       replyTo: email,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">

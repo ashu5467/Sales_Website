@@ -59,7 +59,7 @@ export default function Home() {
             className="mb-8 inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-sm font-medium text-indigo-300 backdrop-blur-md"
           >
             <Sparkles className="h-4 w-4 text-indigo-400" />
-            <span>Introducing HustleOS Automation Suite</span>
+            <span>Introducing devmotive Automation Suite</span>
           </motion.div>
 
           {/* Heading */}
@@ -135,11 +135,11 @@ export default function Home() {
           
           <div className="flex items-center gap-2 mb-6">
             <Calculator className="w-6 h-6 text-indigo-400" />
-            <h3 className="text-xl font-bold text-white">HustleOS ROI Calculator</h3>
+            <h3 className="text-xl font-bold text-white">devmotive ROI Calculator</h3>
           </div>
 
           <p className="text-sm text-slate-400 mb-8 max-w-xl">
-            See how much time and money you are currently spending on manual job searching and how much a lifetime license of HustleOS saves you.
+            See how much time and money you are currently spending on manual job searching and how much a lifetime license of devmotive saves you.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">

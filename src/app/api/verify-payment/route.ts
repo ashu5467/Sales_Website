@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Resend } from "resend";
+import { logSale } from "@/lib/salesLogger";
 
 const s3 = new S3Client({
   region: process.env.STORAGE_REGION || "eu-north-1",
@@ -83,6 +84,15 @@ export async function POST(request: NextRequest) {
     };
     const productName = productNames[productKey] || "Desktop Tool";
 
+    // Backend price security mapping (for logging and analytics)
+    const priceMapping: Record<string, number> = {
+      "linkedin-applier": 49,
+      intai: 99,
+    };
+    const amountUSD = priceMapping[productKey] || 0;
+    const exchangeRate = 83;
+    const amountINR = amountUSD * exchangeRate;
+
     try {
       await resend.emails.send({
         from: process.env.FROM_EMAIL || "onboarding@resend.dev",
@@ -99,13 +109,66 @@ export async function POST(request: NextRequest) {
             <p style="color: #64748b; font-size: 12px;">If the download button above does not work, copy and paste this link in your browser:</p>
             <p style="word-break: break-all; color: #0284c7; font-size: 12px;">${downloadUrl}</p>
             <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-            <p style="color: #64748b; font-size: 13px;">HustleOS Software Support. Do not reply directly to this email.</p>
+            <p style="color: #64748b; font-size: 13px;">devmotive Support. Do not reply directly to this email.</p>
           </div>
         `,
       });
     } catch (resendError) {
       console.error("Resend Email Delivery Error:", resendError);
       // We don't fail the API call because the payment is verified, but log the email dispatch failure
+    }
+
+    // 4. Log the Sale to our local database
+    await logSale({
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+      email,
+      productKey,
+      productName,
+      amountUSD,
+      amountINR,
+    });
+
+    // 5. Dispatch Admin Alert Email via Resend
+    try {
+      const adminEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+      await resend.emails.send({
+        from: adminEmail,
+        to: adminEmail,
+        subject: `[ALERT] New Sale: ${productName}`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h2 style="color: #10b981; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-top: 0;">New Purchase Alert!</h2>
+            <p>A new customer has successfully purchased a lifetime license.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 8px 0; font-weight: bold; color: #475569; width: 150px;">Product:</td>
+                <td style="padding: 8px 0; color: #0f172a;">${productName} (${productKey})</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Customer Email:</td>
+                <td style="padding: 8px 0; color: #0f172a;">${email}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Amount:</td>
+                <td style="padding: 8px 0; color: #0f172a;">$${amountUSD} USD (~₹${amountINR} INR)</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Payment ID:</td>
+                <td style="padding: 8px 0; font-family: monospace; font-size: 13px; color: #0f172a;">${razorpay_payment_id}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 8px 0; font-weight: bold; color: #475569;">Order ID:</td>
+                <td style="padding: 8px 0; font-family: monospace; font-size: 13px; color: #0f172a;">${razorpay_order_id}</td>
+              </tr>
+            </table>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
+            <p style="color: #64748b; font-size: 11px; margin-top: 12px;">devmotive Sales Alert System. Do not reply to this email.</p>
+          </div>
+        `,
+      });
+    } catch (adminEmailError) {
+      console.error("Failed to send sales alert email to admin:", adminEmailError);
     }
 
     return NextResponse.json({

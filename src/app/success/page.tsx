@@ -46,7 +46,7 @@ function SuccessContent() {
 
         <h1 className="text-3xl font-extrabold mb-2 text-white">Purchase Successful!</h1>
         <p className="text-slate-400 mb-6 text-sm">
-          Thank you for choosing HustleOS. Your payment has been verified.
+          Thank you for choosing devmotive. Your payment has been verified.
         </p>
 
         {/* Receipt Details Card */}

@@ -95,7 +95,7 @@ export default function RazorpayButton({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_T52eSEEaoGoURo",
         amount: orderData.amount,
         currency: orderData.currency,
-        name: "HustleOS Software",
+        name: "devmotive",
         description: `Lifetime License: ${productName}`,
         order_id: orderData.id,
         handler: async function (response: any) {
