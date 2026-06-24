@@ -10,9 +10,9 @@ const razorpay = new Razorpay({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { productKey, priceUSD } = body;
+    const { productKey, priceINR } = body;
 
-    if (!productKey || !priceUSD) {
+    if (!productKey || !priceINR) {
       return NextResponse.json(
         { error: "Product Key and Price are required parameters." },
         { status: 400 }
@@ -21,21 +21,20 @@ export async function POST(request: NextRequest) {
 
     // Backend price security mapping (never trust frontend prices)
     const priceMapping: Record<string, number> = {
-      "linkedin-applier": 49,
-      intai: 99,
+      "linkedin-applier": 3999,
+      intai: 7999,
     };
 
-    const validatedPriceUSD = priceMapping[productKey];
-    if (!validatedPriceUSD) {
+    const validatedPriceINR = priceMapping[productKey];
+    if (!validatedPriceINR) {
       return NextResponse.json(
         { error: "Invalid product key requested." },
         { status: 400 }
       );
     }
 
-    // Convert USD to INR (approximate rate 1 USD = 83 INR) for Razorpay standard transaction (in Paise)
-    const exchangeRate = 83;
-    const amountInPaise = Math.round(validatedPriceUSD * exchangeRate * 100);
+    // Amount is already in INR, convert directly to Paise (INR * 100) for Razorpay
+    const amountInPaise = Math.round(validatedPriceINR * 100);
 
     const options = {
       amount: amountInPaise,
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
       receipt: `receipt_${uuidv4().substring(0, 10)}`,
       notes: {
         productKey,
-        originalUSD: validatedPriceUSD,
+        originalINR: validatedPriceINR,
       },
     };
 

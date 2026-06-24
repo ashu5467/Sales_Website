@@ -64,7 +64,7 @@ export default function IntAiPage() {
               <RazorpayButton
                 productName="intAi Assistant"
                 productKey="intai"
-                priceUSD={99}
+                priceINR={7999}
                 colorTheme="cyan"
               />
               <div className="text-xs text-slate-500 max-w-[200px]">

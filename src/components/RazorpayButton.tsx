@@ -8,14 +8,14 @@ import { Sparkles, Loader2, ArrowRight, X, ShieldAlert } from "lucide-react";
 interface RazorpayButtonProps {
   productName: string;
   productKey: string; // 'linkedin-applier' | 'intai'
-  priceUSD: number;
+  priceINR: number;
   colorTheme?: "indigo" | "cyan";
 }
 
 export default function RazorpayButton({
   productName,
   productKey,
-  priceUSD,
+  priceINR,
   colorTheme = "indigo",
 }: RazorpayButtonProps) {
   const router = useRouter();
@@ -79,7 +79,7 @@ export default function RazorpayButton({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productKey,
-          priceUSD,
+          priceINR,
         }),
       });
 
@@ -165,7 +165,7 @@ export default function RazorpayButton({
         onClick={() => setShowEmailModal(true)}
         className={`px-8 py-4 rounded-full text-white font-semibold flex items-center gap-2 cursor-pointer transition-all ${themeClasses.bg} ${themeClasses.shadow}`}
       >
-        <span>Buy Lifetime License — ${priceUSD}</span>
+        <span>Buy Lifetime License — ₹{priceINR.toLocaleString("en-IN")}</span>
         <ArrowRight className="w-5 h-5" />
       </button>
 

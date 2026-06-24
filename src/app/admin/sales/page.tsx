@@ -26,7 +26,7 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
   const isAuthenticated = enteredCode === ADMIN_PASSCODE;
 
   if (!isAuthenticated) {
-    // Render a premium, stunning Lock Screen if passcode is missing or invalid
+    // Render a premium, Lock Screen if passcode is missing or invalid
     return (
       <div className="relative min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center px-4 py-12 overflow-hidden">
         {/* Background decorative glow */}
@@ -80,19 +80,19 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
   // Load transaction data if authenticated
   const sales = getSales();
 
-  // Metrics calculations
+  // Metrics calculations (INR as primary)
   const totalSales = sales.length;
-  const totalUSD = sales.reduce((acc, curr) => acc + curr.amountUSD, 0);
   const totalINR = sales.reduce((acc, curr) => acc + curr.amountINR, 0);
+  const totalUSD = sales.reduce((acc, curr) => acc + curr.amountUSD, 0);
 
   // Product breakdown
   const linkedinSales = sales.filter(s => s.productKey === "linkedin-applier");
   const linkedinCount = linkedinSales.length;
-  const linkedinRevenue = linkedinSales.reduce((acc, curr) => acc + curr.amountUSD, 0);
+  const linkedinRevenueINR = linkedinSales.reduce((acc, curr) => acc + curr.amountINR, 0);
 
   const intaiSales = sales.filter(s => s.productKey === "intai");
   const intaiCount = intaiSales.length;
-  const intaiRevenue = intaiSales.reduce((acc, curr) => acc + curr.amountUSD, 0);
+  const intaiRevenueINR = intaiSales.reduce((acc, curr) => acc + curr.amountINR, 0);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -129,10 +129,10 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
               <div>
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Revenue</p>
                 <h3 className="text-2xl font-extrabold text-white mt-1">
-                  ${totalUSD.toLocaleString()} <span className="text-sm font-semibold text-indigo-400">USD</span>
+                  ₹{totalINR.toLocaleString("en-IN")} <span className="text-sm font-semibold text-indigo-400">INR</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  ~₹{totalINR.toLocaleString()} INR
+                  ~${totalUSD.toLocaleString()} USD
                 </p>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
             </div>
           </div>
 
-          {/* Card 3: Conversion Value */}
+          {/* Card 3: Average Ticket */}
           <div className="relative overflow-hidden rounded-2xl border border-slate-900 bg-slate-900/20 p-6 backdrop-blur-md hover:border-slate-800/80 transition-all group">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
               <Receipt className="w-24 h-24 text-cyan-400" />
@@ -171,10 +171,10 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
               <div>
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Average Ticket</p>
                 <h3 className="text-2xl font-extrabold text-white mt-1">
-                  ${totalSales > 0 ? Math.round(totalUSD / totalSales) : 0} <span className="text-sm font-semibold text-cyan-400">USD</span>
+                  ₹{totalSales > 0 ? Math.round(totalINR / totalSales).toLocaleString("en-IN") : 0} <span className="text-sm font-semibold text-cyan-400">INR</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Mean purchase value
+                  ~${totalSales > 0 ? Math.round(totalUSD / totalSales) : 0} USD
                 </p>
               </div>
             </div>
@@ -198,7 +198,7 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <span className="text-xs bg-indigo-500/15 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-full font-medium">
-                $49 License
+                ₹3,999 License
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4 border-t border-slate-900 pt-4">
@@ -208,7 +208,7 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
               </div>
               <div>
                 <p className="text-xs text-slate-400">Total Revenue</p>
-                <p className="text-xl font-extrabold text-emerald-400 mt-1">${linkedinRevenue} USD</p>
+                <p className="text-xl font-extrabold text-emerald-400 mt-1">₹{linkedinRevenueINR.toLocaleString("en-IN")} INR</p>
               </div>
             </div>
           </div>
@@ -226,7 +226,7 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
                 </div>
               </div>
               <span className="text-xs bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 px-2.5 py-1 rounded-full font-medium">
-                $99 License
+                ₹7,999 License
               </span>
             </div>
             <div className="grid grid-cols-2 gap-4 border-t border-slate-900 pt-4">
@@ -236,7 +236,7 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
               </div>
               <div>
                 <p className="text-xs text-slate-400">Total Revenue</p>
-                <p className="text-xl font-extrabold text-emerald-400 mt-1">${intaiRevenue} USD</p>
+                <p className="text-xl font-extrabold text-emerald-400 mt-1">₹{intaiRevenueINR.toLocaleString("en-IN")} INR</p>
               </div>
             </div>
           </div>
@@ -308,10 +308,10 @@ export default async function AdminSalesPage({ searchParams }: PageProps) {
                       {/* Paid Amount */}
                       <td className="py-4 px-6">
                         <div className="font-bold text-emerald-400">
-                          ${sale.amountUSD} USD
+                          ₹{sale.amountINR.toLocaleString("en-IN")} INR
                         </div>
                         <div className="text-[10px] text-slate-500 font-semibold">
-                          ~₹{sale.amountINR} INR
+                          ~${sale.amountUSD} USD
                         </div>
                       </td>
 

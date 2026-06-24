@@ -64,7 +64,7 @@ export default function LinkedInApplier() {
               <RazorpayButton
                 productName="LinkedIn Auto-Applier"
                 productKey="linkedin-applier"
-                priceUSD={49}
+                priceINR={3999}
                 colorTheme="indigo"
               />
               <div className="text-xs text-slate-500 max-w-[200px]">

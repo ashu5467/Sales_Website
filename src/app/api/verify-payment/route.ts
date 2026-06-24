@@ -84,14 +84,14 @@ export async function POST(request: NextRequest) {
     };
     const productName = productNames[productKey] || "Desktop Tool";
 
-    // Backend price security mapping (for logging and analytics)
+    // Backend price security mapping (natively in INR)
     const priceMapping: Record<string, number> = {
-      "linkedin-applier": 49,
-      intai: 99,
+      "linkedin-applier": 3999,
+      intai: 7999,
     };
-    const amountUSD = priceMapping[productKey] || 0;
+    const amountINR = priceMapping[productKey] || 0;
     const exchangeRate = 83;
-    const amountINR = amountUSD * exchangeRate;
+    const amountUSD = Math.round(amountINR / exchangeRate);
 
     try {
       await resend.emails.send({
@@ -113,12 +113,27 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       });
-    } catch (resendError) {
-      console.error("Resend Email Delivery Error:", resendError);
-      // We don't fail the API call because the payment is verified, but log the email dispatch failure
+    } catch (resendError: any) {
+      console.error("==================================================");
+      console.error("RESEND EMAIL DELIVERY ERROR (CUSTOMER EMAIL FAILED)");
+      console.error("Error Message:", resendError?.message || resendError);
+      console.error("--------------------------------------------------");
+      console.error("DIAGNOSTIC CHECKLIST:");
+      if (process.env.FROM_EMAIL === "onboarding@resend.dev" || !process.env.FROM_EMAIL) {
+        console.error("1. SANDBOX RESTRICTION ACTIVE: You are sending from 'onboarding@resend.dev'.");
+        console.error(`   Resend ONLY permits sending emails to your own registered Resend account email.`);
+        console.error(`   You tried to send to: '${email}'. This will FAIL unless it matches your Resend signup email.`);
+        console.error("2. TO FIX IN DEVELOPMENT: Enter your personal Resend account email in the checkout form.");
+        console.error("3. TO FIX IN PRODUCTION: You must verify your own custom domain (e.g. devmotive.com) in the Resend dashboard.");
+        console.error("   Then, update FROM_EMAIL in .env.local to an email on that domain (e.g. sales@devmotive.com).");
+      } else {
+        console.error("1. Check if the FROM_EMAIL domain is verified in your Resend Dashboard.");
+        console.error("2. Verify that your RESEND_API_KEY in .env.local is valid and not expired.");
+      }
+      console.error("==================================================");
     }
 
-    // 4. Log the Sale to our local database
+    // 4. Log the Sale to our local database (INR as primary)
     await logSale({
       paymentId: razorpay_payment_id,
       orderId: razorpay_order_id,
@@ -130,10 +145,10 @@ export async function POST(request: NextRequest) {
     });
 
     // 5. Dispatch Admin Alert Email via Resend
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.FROM_EMAIL || "onboarding@resend.dev";
     try {
-      const adminEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
       await resend.emails.send({
-        from: adminEmail,
+        from: process.env.FROM_EMAIL || "onboarding@resend.dev",
         to: adminEmail,
         subject: `[ALERT] New Sale: ${productName}`,
         html: `
@@ -151,7 +166,7 @@ export async function POST(request: NextRequest) {
               </tr>
               <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 8px 0; font-weight: bold; color: #475569;">Amount:</td>
-                <td style="padding: 8px 0; color: #0f172a;">$${amountUSD} USD (~₹${amountINR} INR)</td>
+                <td style="padding: 8px 0; color: #10b981; font-weight: bold;">₹${amountINR.toLocaleString("en-IN")} INR (~$${amountUSD} USD)</td>
               </tr>
               <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 8px 0; font-weight: bold; color: #475569;">Payment ID:</td>
@@ -167,8 +182,26 @@ export async function POST(request: NextRequest) {
           </div>
         `,
       });
-    } catch (adminEmailError) {
-      console.error("Failed to send sales alert email to admin:", adminEmailError);
+    } catch (adminEmailError: any) {
+      console.error("==================================================");
+      console.error("RESEND EMAIL DELIVERY ERROR (ADMIN EMAIL FAILED)");
+      console.error("Error Message:", adminEmailError?.message || adminEmailError);
+      console.error("--------------------------------------------------");
+      console.error("DIAGNOSTIC CHECKLIST:");
+      console.error(`Attempted to send to ADMIN_EMAIL: '${adminEmail}'`);
+      if (adminEmail === "onboarding@resend.dev") {
+        console.error("WARNING: 'onboarding@resend.dev' is a system address, NOT a real mailbox.");
+        console.error("You cannot log in to read emails sent to 'onboarding@resend.dev'.");
+        console.error("Please add 'ADMIN_EMAIL=your_actual_email@gmail.com' to your .env.local file.");
+      } else if (process.env.FROM_EMAIL === "onboarding@resend.dev" || !process.env.FROM_EMAIL) {
+        console.error("1. SANDBOX RESTRICTION: Because FROM_EMAIL is 'onboarding@resend.dev',");
+        console.error("   ADMIN_EMAIL must be the exact email address you registered your Resend account with.");
+        console.error(`   Is '${adminEmail}' your Resend account signup email? If not, Resend will reject this.`);
+      } else {
+        console.error("1. Verify your RESEND_API_KEY is correct.");
+        console.error("2. Confirm your FROM_EMAIL domain is verified in Resend.");
+      }
+      console.error("==================================================");
     }
 
     return NextResponse.json({
