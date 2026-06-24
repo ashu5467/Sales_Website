@@ -15,11 +15,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const adminEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+    const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+    const adminEmail = process.env.ADMIN_EMAIL || fromEmail;
 
     // Send ticket details email to support inbox
     await resend.emails.send({
-      from: adminEmail,
+      from: fromEmail,
       to: adminEmail,
       subject: `[devmotive Support] ${subject}`,
       replyTo: email,
